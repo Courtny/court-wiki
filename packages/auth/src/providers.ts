@@ -13,6 +13,19 @@ import type { Provider } from "next-auth/providers";
 import { prisma } from "@court-wiki/db";
 import { compare } from "bcryptjs";
 
+/** Prefer legacy COURT_WIKI names, then Auth.js v5 `AUTH_{PROVIDER}_{ID|SECRET}` inference names. */
+function envFirst(...keys: string[]): string {
+  for (const k of keys) {
+    const v = process.env[k];
+    if (v != null && v !== "") return v;
+  }
+  return "";
+}
+
+function hasOAuthPair(idKeys: [string, string], secretKeys: [string, string]): boolean {
+  return !!(envFirst(...idKeys) && envFirst(...secretKeys));
+}
+
 // ─── Credentials (local username/password) ────────────────────────────────────
 
 export const credentialsProvider = Credentials({
@@ -47,58 +60,60 @@ export const credentialsProvider = Credentials({
 // ─── OAuth Providers ──────────────────────────────────────────────────────────
 
 export const githubProvider = GitHub({
-  clientId: process.env["GITHUB_CLIENT_ID"] ?? "",
-  clientSecret: process.env["GITHUB_CLIENT_SECRET"] ?? "",
+  clientId: envFirst("GITHUB_CLIENT_ID", "AUTH_GITHUB_ID"),
+  clientSecret: envFirst("GITHUB_CLIENT_SECRET", "AUTH_GITHUB_SECRET"),
 });
 
 export const gitlabProvider = GitLab({
-  clientId: process.env["GITLAB_CLIENT_ID"] ?? "",
-  clientSecret: process.env["GITLAB_CLIENT_SECRET"] ?? "",
+  clientId: envFirst("GITLAB_CLIENT_ID", "AUTH_GITLAB_ID"),
+  clientSecret: envFirst("GITLAB_CLIENT_SECRET", "AUTH_GITLAB_SECRET"),
 });
 
 export const googleProvider = Google({
-  clientId: process.env["GOOGLE_CLIENT_ID"] ?? "",
-  clientSecret: process.env["GOOGLE_CLIENT_SECRET"] ?? "",
+  clientId: envFirst("GOOGLE_CLIENT_ID", "AUTH_GOOGLE_ID"),
+  clientSecret: envFirst("GOOGLE_CLIENT_SECRET", "AUTH_GOOGLE_SECRET"),
 });
 
 export const facebookProvider = Facebook({
-  clientId: process.env["FACEBOOK_CLIENT_ID"] ?? "",
-  clientSecret: process.env["FACEBOOK_CLIENT_SECRET"] ?? "",
+  clientId: envFirst("FACEBOOK_CLIENT_ID", "AUTH_FACEBOOK_ID"),
+  clientSecret: envFirst("FACEBOOK_CLIENT_SECRET", "AUTH_FACEBOOK_SECRET"),
 });
 
 export const discordProvider = Discord({
-  clientId: process.env["DISCORD_CLIENT_ID"] ?? "",
-  clientSecret: process.env["DISCORD_CLIENT_SECRET"] ?? "",
+  clientId: envFirst("DISCORD_CLIENT_ID", "AUTH_DISCORD_ID"),
+  clientSecret: envFirst("DISCORD_CLIENT_SECRET", "AUTH_DISCORD_SECRET"),
 });
 
 export const slackProvider = Slack({
-  clientId: process.env["SLACK_CLIENT_ID"] ?? "",
-  clientSecret: process.env["SLACK_CLIENT_SECRET"] ?? "",
+  clientId: envFirst("SLACK_CLIENT_ID", "AUTH_SLACK_ID"),
+  clientSecret: envFirst("SLACK_CLIENT_SECRET", "AUTH_SLACK_SECRET"),
 });
 
 export const twitchProvider = Twitch({
-  clientId: process.env["TWITCH_CLIENT_ID"] ?? "",
-  clientSecret: process.env["TWITCH_CLIENT_SECRET"] ?? "",
+  clientId: envFirst("TWITCH_CLIENT_ID", "AUTH_TWITCH_ID"),
+  clientSecret: envFirst("TWITCH_CLIENT_SECRET", "AUTH_TWITCH_SECRET"),
 });
 
+const msTenant = envFirst("AZURE_AD_TENANT_ID", "AUTH_MICROSOFT_ENTRA_TENANT_ID");
+
 export const microsoftProvider = MicrosoftEntraID({
-  clientId: process.env["AZURE_AD_CLIENT_ID"] ?? "",
-  clientSecret: process.env["AZURE_AD_CLIENT_SECRET"] ?? "",
-  issuer: process.env["AZURE_AD_TENANT_ID"]
-    ? `https://login.microsoftonline.com/${process.env["AZURE_AD_TENANT_ID"]}/v2.0`
+  clientId: envFirst("AZURE_AD_CLIENT_ID", "AUTH_MICROSOFT_ENTRA_ID"),
+  clientSecret: envFirst("AZURE_AD_CLIENT_SECRET", "AUTH_MICROSOFT_ENTRA_SECRET"),
+  issuer: msTenant
+    ? `https://login.microsoftonline.com/${msTenant}/v2.0`
     : "https://login.microsoftonline.com/common/v2.0",
 });
 
 export const auth0Provider = Auth0({
-  clientId: process.env["AUTH0_CLIENT_ID"] ?? "",
-  clientSecret: process.env["AUTH0_CLIENT_SECRET"] ?? "",
-  issuer: process.env["AUTH0_ISSUER"] ?? "",
+  clientId: envFirst("AUTH0_CLIENT_ID", "AUTH_AUTH0_ID"),
+  clientSecret: envFirst("AUTH0_CLIENT_SECRET", "AUTH_AUTH0_SECRET"),
+  issuer: envFirst("AUTH0_ISSUER", "AUTH_AUTH0_ISSUER"),
 });
 
 export const oktaProvider = Okta({
-  clientId: process.env["OKTA_CLIENT_ID"] ?? "",
-  clientSecret: process.env["OKTA_CLIENT_SECRET"] ?? "",
-  issuer: process.env["OKTA_ISSUER"] ?? "",
+  clientId: envFirst("OKTA_CLIENT_ID", "AUTH_OKTA_ID"),
+  clientSecret: envFirst("OKTA_CLIENT_SECRET", "AUTH_OKTA_SECRET"),
+  issuer: envFirst("OKTA_ISSUER", "AUTH_OKTA_ISSUER"),
 });
 
 // ─── SAML / LDAP stubs ───────────────────────────────────────────────────────
@@ -132,65 +147,46 @@ export const oktaProvider = Okta({
 export function getActiveProviders(): Provider[] {
   const providers: Provider[] = [credentialsProvider];
 
-  if (
-    process.env["GITHUB_CLIENT_ID"] &&
-    process.env["GITHUB_CLIENT_SECRET"]
-  ) {
+  if (hasOAuthPair(["GITHUB_CLIENT_ID", "AUTH_GITHUB_ID"], ["GITHUB_CLIENT_SECRET", "AUTH_GITHUB_SECRET"])) {
     providers.push(githubProvider);
   }
-  if (
-    process.env["GITLAB_CLIENT_ID"] &&
-    process.env["GITLAB_CLIENT_SECRET"]
-  ) {
+  if (hasOAuthPair(["GITLAB_CLIENT_ID", "AUTH_GITLAB_ID"], ["GITLAB_CLIENT_SECRET", "AUTH_GITLAB_SECRET"])) {
     providers.push(gitlabProvider);
   }
-  if (
-    process.env["GOOGLE_CLIENT_ID"] &&
-    process.env["GOOGLE_CLIENT_SECRET"]
-  ) {
+  if (hasOAuthPair(["GOOGLE_CLIENT_ID", "AUTH_GOOGLE_ID"], ["GOOGLE_CLIENT_SECRET", "AUTH_GOOGLE_SECRET"])) {
     providers.push(googleProvider);
   }
-  if (
-    process.env["FACEBOOK_CLIENT_ID"] &&
-    process.env["FACEBOOK_CLIENT_SECRET"]
-  ) {
+  if (hasOAuthPair(["FACEBOOK_CLIENT_ID", "AUTH_FACEBOOK_ID"], ["FACEBOOK_CLIENT_SECRET", "AUTH_FACEBOOK_SECRET"])) {
     providers.push(facebookProvider);
   }
-  if (
-    process.env["DISCORD_CLIENT_ID"] &&
-    process.env["DISCORD_CLIENT_SECRET"]
-  ) {
+  if (hasOAuthPair(["DISCORD_CLIENT_ID", "AUTH_DISCORD_ID"], ["DISCORD_CLIENT_SECRET", "AUTH_DISCORD_SECRET"])) {
     providers.push(discordProvider);
   }
-  if (
-    process.env["SLACK_CLIENT_ID"] &&
-    process.env["SLACK_CLIENT_SECRET"]
-  ) {
+  if (hasOAuthPair(["SLACK_CLIENT_ID", "AUTH_SLACK_ID"], ["SLACK_CLIENT_SECRET", "AUTH_SLACK_SECRET"])) {
     providers.push(slackProvider);
   }
-  if (
-    process.env["TWITCH_CLIENT_ID"] &&
-    process.env["TWITCH_CLIENT_SECRET"]
-  ) {
+  if (hasOAuthPair(["TWITCH_CLIENT_ID", "AUTH_TWITCH_ID"], ["TWITCH_CLIENT_SECRET", "AUTH_TWITCH_SECRET"])) {
     providers.push(twitchProvider);
   }
   if (
-    process.env["AZURE_AD_CLIENT_ID"] &&
-    process.env["AZURE_AD_CLIENT_SECRET"]
+    hasOAuthPair(
+      ["AZURE_AD_CLIENT_ID", "AUTH_MICROSOFT_ENTRA_ID"],
+      ["AZURE_AD_CLIENT_SECRET", "AUTH_MICROSOFT_ENTRA_SECRET"]
+    )
   ) {
     providers.push(microsoftProvider);
   }
   if (
-    process.env["AUTH0_CLIENT_ID"] &&
-    process.env["AUTH0_CLIENT_SECRET"] &&
-    process.env["AUTH0_ISSUER"]
+    envFirst("AUTH0_CLIENT_ID", "AUTH_AUTH0_ID") &&
+    envFirst("AUTH0_CLIENT_SECRET", "AUTH_AUTH0_SECRET") &&
+    envFirst("AUTH0_ISSUER", "AUTH_AUTH0_ISSUER")
   ) {
     providers.push(auth0Provider);
   }
   if (
-    process.env["OKTA_CLIENT_ID"] &&
-    process.env["OKTA_CLIENT_SECRET"] &&
-    process.env["OKTA_ISSUER"]
+    envFirst("OKTA_CLIENT_ID", "AUTH_OKTA_ID") &&
+    envFirst("OKTA_CLIENT_SECRET", "AUTH_OKTA_SECRET") &&
+    envFirst("OKTA_ISSUER", "AUTH_OKTA_ISSUER")
   ) {
     providers.push(oktaProvider);
   }

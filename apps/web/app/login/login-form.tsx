@@ -7,10 +7,22 @@ import { signIn } from "next-auth/react";
 
 type OAuthOption = { id: string; name: string };
 
+function authErrorMessage(code: string | null): string | null {
+  if (!code) return null;
+  if (code === "Configuration") {
+    return "Auth misconfigured: set AUTH_SECRET (or NEXTAUTH_SECRET) and a full GitHub OAuth pair (GITHUB_* or AUTH_GITHUB_*).";
+  }
+  if (code === "AccessDenied") return "Access was denied. You may not be allowed to sign in.";
+  if (code === "Verification") return "The sign-in link is invalid or has expired.";
+  return `Sign-in error (${code}). Try again or contact an administrator.`;
+}
+
 export function LoginForm({ oauthProviders }: { oauthProviders: OAuthOption[] }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") ?? "/";
+  const authErrorParam = searchParams.get("error");
+  const authErrorBanner = authErrorMessage(authErrorParam);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -49,6 +61,12 @@ export function LoginForm({ oauthProviders }: { oauthProviders: OAuthOption[] })
           Use your account or an OAuth provider configured for this deployment.
         </p>
       </div>
+
+      {authErrorBanner && (
+        <p className="rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive" role="alert">
+          {authErrorBanner}
+        </p>
+      )}
 
       {oauthProviders.length > 0 && (
         <div className="space-y-2">

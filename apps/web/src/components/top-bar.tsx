@@ -3,14 +3,16 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useSession, signOut } from "next-auth/react";
 import { Search, Moon, Sun, Menu, Bell, Plus } from "lucide-react";
 import { useTheme } from "next-themes";
 
 export function TopBar() {
+  const { data: session, status } = useSession();
   const router = useRouter();
   const { theme, setTheme } = useTheme();
   const [searchQuery, setSearchQuery] = useState("");
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
@@ -29,7 +31,8 @@ export function TopBar() {
       <button
         type="button"
         className="rounded-md p-1.5 text-muted-foreground hover:bg-accent lg:hidden"
-        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+        onClick={() => setMobileNavOpen((o) => !o)}
+        aria-expanded={mobileNavOpen}
         aria-label="Toggle navigation"
       >
         <Menu className="h-5 w-5" />
@@ -83,13 +86,38 @@ export function TopBar() {
         </button>
 
         {/* User avatar / sign-in */}
-        <Link
-          href="/login"
-          className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary text-sm font-medium text-secondary-foreground hover:bg-secondary/80"
-          aria-label="Account"
-        >
-          U
-        </Link>
+        {status === "loading" ? (
+          <span
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-xs text-muted-foreground"
+            aria-hidden
+          >
+            …
+          </span>
+        ) : session?.user ? (
+          <div className="flex items-center gap-2">
+            <span
+              className="hidden max-w-[10rem] truncate text-xs text-muted-foreground sm:inline"
+              title={session.user.email ?? session.user.name ?? ""}
+            >
+              {session.user.name ?? session.user.email ?? "Signed in"}
+            </span>
+            <button
+              type="button"
+              onClick={() => void signOut({ redirectTo: "/" })}
+              className="rounded-md px-2 py-1 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground"
+            >
+              Sign out
+            </button>
+          </div>
+        ) : (
+          <Link
+            href="/login"
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary text-sm font-medium text-secondary-foreground hover:bg-secondary/80"
+            aria-label="Sign in"
+          >
+            U
+          </Link>
+        )}
       </div>
     </header>
   );
