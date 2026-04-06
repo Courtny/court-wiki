@@ -1,0 +1,9 @@
+{
+  "framework": "nextjs",
+  "installCommand": "pnpm install --frozen-lockfile",
+  "buildCommand": "pnpm --filter @court-wiki/db db:generate && pnpm --filter @court-wiki/web build",
+  "outputDirectory": "apps/web/.next",
+  "env": {
+    "SKIP_ENV_VALIDATION": "true"
+  }
+}

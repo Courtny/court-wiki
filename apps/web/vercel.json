@@ -1,8 +1,0 @@
-{
-  "installCommand": "cd ../.. && pnpm install --frozen-lockfile",
-  "buildCommand": "cd ../.. && pnpm --filter @court-wiki/db db:generate && cd apps/web && pnpm build",
-  "framework": "nextjs",
-  "env": {
-    "SKIP_ENV_VALIDATION": "true"
-  }
-}
