@@ -1,0 +1,267 @@
+// This is the Prisma schema for court-wiki
+// A modernized Wiki.js clone
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum ContentType {
+  MARKDOWN
+  ASCIIDOC
+  HTML
+}
+
+enum PageRuleMatch {
+  START
+  END
+  REGEX
+  TAG
+  EXACT
+}
+
+enum NavigationItemType {
+  PAGE
+  LINK
+  HEADER
+  DIVIDER
+}
+
+// ─── Users & Auth ─────────────────────────────────────────────────────────────
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String?
+  passwordHash String?
+  avatar       String?
+  locale       String   @default("en")
+  timezone     String   @default("UTC")
+  isActive     Boolean  @default(true)
+  isAdmin      Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  groups       GroupUser[]
+  pages        Page[]         @relation("PageAuthor")
+  pageVersions PageVersion[]  @relation("VersionAuthor")
+  assets       Asset[]
+  comments     Comment[]
+  apiKeys      ApiKey[]
+
+  @@map("users")
+}
+
+model Group {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  permissions Json     @default("{}")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users     GroupUser[]
+  pageRules PageRule[]
+
+  @@map("groups")
+}
+
+model GroupUser {
+  userId  String
+  groupId String
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@id([userId, groupId])
+  @@map("group_users")
+}
+
+// ─── Pages & Versioning ───────────────────────────────────────────────────────
+
+model Page {
+  id          String      @id @default(cuid())
+  path        String      @unique
+  title       String
+  description String?
+  content     String      @db.Text
+  contentType ContentType @default(MARKDOWN)
+  locale      String      @default("en")
+  isPublished Boolean     @default(false)
+  isPrivate   Boolean     @default(false)
+  authorId    String
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  author       User          @relation("PageAuthor", fields: [authorId], references: [id])
+  versions     PageVersion[]
+  tags         PageTag[]
+  comments     Comment[]
+  searchIndex  SearchIndex?
+  navItems     NavigationItem[]
+
+  @@index([locale])
+  @@index([isPublished, isPrivate])
+  @@index([authorId])
+  @@map("pages")
+}
+
+model PageVersion {
+  id          String   @id @default(cuid())
+  pageId      String
+  content     String   @db.Text
+  versionDate DateTime @default(now())
+  authorId    String
+  action      String   @default("update")
+
+  page   Page @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  author User @relation("VersionAuthor", fields: [authorId], references: [id])
+
+  @@index([pageId, versionDate])
+  @@map("page_versions")
+}
+
+model Tag {
+  id   String @id @default(cuid())
+  name String @unique
+
+  pages PageTag[]
+
+  @@map("tags")
+}
+
+model PageTag {
+  pageId String
+  tagId  String
+
+  page Page @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  tag  Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([pageId, tagId])
+  @@map("page_tags")
+}
+
+// ─── Assets ───────────────────────────────────────────────────────────────────
+
+model AssetFolder {
+  id       String  @id @default(cuid())
+  name     String
+  slug     String
+  parentId String?
+
+  parent   AssetFolder?  @relation("FolderChildren", fields: [parentId], references: [id])
+  children AssetFolder[] @relation("FolderChildren")
+  assets   Asset[]
+
+  @@unique([slug, parentId])
+  @@map("asset_folders")
+}
+
+model Asset {
+  id        String   @id @default(cuid())
+  filename  String
+  ext       String
+  fileSize  Int
+  mimeType  String
+  folderId  String?
+  authorId  String
+  createdAt DateTime @default(now())
+
+  folder AssetFolder? @relation(fields: [folderId], references: [id])
+  author User         @relation(fields: [authorId], references: [id])
+
+  @@index([folderId])
+  @@index([authorId])
+  @@map("assets")
+}
+
+// ─── Comments ─────────────────────────────────────────────────────────────────
+
+model Comment {
+  id        String   @id @default(cuid())
+  pageId    String
+  authorId  String
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  page   Page @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  author User @relation(fields: [authorId], references: [id])
+
+  @@index([pageId])
+  @@map("comments")
+}
+
+// ─── Navigation ───────────────────────────────────────────────────────────────
+
+model NavigationItem {
+  id       String             @id @default(cuid())
+  type     NavigationItemType @default(PAGE)
+  label    String
+  icon     String?
+  path     String?
+  pageId   String?
+  parentId String?
+  order    Int                @default(0)
+  locale   String             @default("en")
+
+  page     Page?          @relation(fields: [pageId], references: [id], onDelete: SetNull)
+  parent   NavigationItem? @relation("NavChildren", fields: [parentId], references: [id])
+  children NavigationItem[] @relation("NavChildren")
+
+  @@index([locale, parentId, order])
+  @@map("navigation_items")
+}
+
+// ─── API Keys ─────────────────────────────────────────────────────────────────
+
+model ApiKey {
+  id          String    @id @default(cuid())
+  name        String
+  keyHash     String    @unique
+  userId      String
+  permissions Json      @default("{}")
+  expiration  DateTime?
+  createdAt   DateTime  @default(now())
+  isActive    Boolean   @default(true)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("api_keys")
+}
+
+// ─── Access Control ───────────────────────────────────────────────────────────
+
+model PageRule {
+  id          String        @id @default(cuid())
+  match       PageRuleMatch @default(EXACT)
+  pattern     String
+  permissions Json          @default("{}")
+  groupId     String?
+
+  group Group? @relation(fields: [groupId], references: [id], onDelete: SetNull)
+
+  @@index([groupId])
+  @@map("page_rules")
+}
+
+// ─── Search ───────────────────────────────────────────────────────────────────
+
+model SearchIndex {
+  id        String   @id @default(cuid())
+  pageId    String   @unique
+  locale    String   @default("en")
+  tokens    String   @db.Text
+  updatedAt DateTime @updatedAt
+
+  page Page @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
+  @@index([locale])
+  @@map("search_index")
+}
