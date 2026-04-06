@@ -1,7 +1,7 @@
 import NextAuth from "next-auth";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@court-wiki/db";
-import { getActiveProviders } from "./providers.js";
+import { getActiveProviders } from './providers';
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
@@ -14,6 +14,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     error: "/login",
   },
   callbacks: {
+    authorized({ auth: session, request: { nextUrl } }) {
+      const isLoggedIn = !!session?.user
+      const isAdminRoute = nextUrl.pathname.startsWith('/admin')
+      const publicPaths = ['/', '/login', '/register']
+      const publicPrefixes = ['/api/trpc', '/api/health', '/_next', '/favicon']
+      const isPublic =
+        publicPaths.includes(nextUrl.pathname) ||
+        publicPrefixes.some((p) => nextUrl.pathname.startsWith(p))
+
+      if (isAdminRoute && !isLoggedIn) return false
+      if (!isPublic && !isLoggedIn) return false
+      return true
+    },
     async jwt({ token, user }) {
       if (user) {
         token["id"] = user.id;
@@ -41,5 +54,5 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
 });
 
-export { getActiveProviders } from "./providers.js";
+export { getActiveProviders } from './providers';
 export type { Provider } from "next-auth/providers";

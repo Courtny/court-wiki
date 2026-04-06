@@ -1,4 +1,4 @@
-export * from "./types.js";
+export * from './types';
 
 // ─── Utility helpers ──────────────────────────────────────────────────────────
 
@@ -27,7 +27,7 @@ export function normalizePath(path: string): string {
 /**
  * Build a flat NavigationItem list into a tree structure.
  */
-import type { NavigationItem, NavigationTree } from "./types.js";
+import type { NavigationItem, NavigationTree } from './types';
 
 export function buildNavigationTree(
   items: NavigationItem[]
@@ -91,7 +91,7 @@ export function truncate(str: string, max = 200): string {
 /**
  * Check if a string matches a PageRule pattern.
  */
-import type { PageRuleMatch } from "./types.js";
+import type { PageRuleMatch } from './types';
 
 export function matchesPageRule(
   path: string,

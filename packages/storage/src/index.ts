@@ -43,7 +43,7 @@ export async function createStorageProvider(
 ): Promise<StorageProvider> {
   switch (config.provider) {
     case "local": {
-      const { LocalStorageProvider } = await import("./local.js");
+      const { LocalStorageProvider } = await import('./local');
       if (!config.local) {
         throw new Error(
           "Local storage config missing: provide { rootPath, baseUrl }"
@@ -52,7 +52,7 @@ export async function createStorageProvider(
       return new LocalStorageProvider(config.local.rootPath, config.local.baseUrl);
     }
     case "s3": {
-      const { S3StorageProvider } = await import("./s3.js");
+      const { S3StorageProvider } = await import('./s3');
       if (!config.s3) {
         throw new Error("S3 storage config missing");
       }

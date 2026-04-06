@@ -1,6 +1,6 @@
 import type { ContentType } from "@court-wiki/core";
-import { renderMarkdown } from "./markdown.js";
-import { renderAsciidoc } from "./asciidoc.js";
+import { renderMarkdown } from './markdown';
+import { renderAsciidoc } from './asciidoc';
 
 export interface RenderResult {
   html: string;
@@ -44,7 +44,7 @@ export async function render(
   }
 }
 
-export { renderMarkdown } from "./markdown.js";
-export { renderAsciidoc } from "./asciidoc.js";
-export type { MarkdownRenderResult } from "./markdown.js";
-export type { AsciidocRenderResult } from "./asciidoc.js";
+export { renderMarkdown } from './markdown';
+export { renderAsciidoc } from './asciidoc';
+export type { MarkdownRenderResult } from './markdown';
+export type { AsciidocRenderResult } from './asciidoc';

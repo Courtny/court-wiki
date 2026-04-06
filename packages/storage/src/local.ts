@@ -1,7 +1,7 @@
 import fs from "fs/promises";
 import path from "path";
 import type { StorageFile } from "@court-wiki/core";
-import type { StorageProvider, UploadInput } from "./index.js";
+import type { StorageProvider, UploadInput } from './index';
 
 export class LocalStorageProvider implements StorageProvider {
   private rootPath: string;

@@ -125,7 +125,7 @@ export const pagesRouter = router({
       // Unpublished pages require the author or admin
       if (!page.isPublished) {
         const user = ctx.session?.user as
-          | (typeof ctx.session.user & { isAdmin?: boolean; id?: string })
+          | ({ isAdmin?: boolean; id?: string } & Record<string, unknown>)
           | undefined;
         if (!user || (user.id !== page.authorId && !user.isAdmin)) {
           throw new TRPCError({

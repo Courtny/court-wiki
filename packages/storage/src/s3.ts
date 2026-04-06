@@ -7,7 +7,7 @@ import {
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import type { StorageFile } from "@court-wiki/core";
-import type { StorageProvider, UploadInput } from "./index.js";
+import type { StorageProvider, UploadInput } from './index';
 
 interface S3Config {
   bucket: string;

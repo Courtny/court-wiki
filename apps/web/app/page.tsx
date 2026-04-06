@@ -2,6 +2,15 @@ import { FileText, Clock, Users, BookOpen, Plus, ArrowRight } from 'lucide-react
 import Link from 'next/link'
 import { createServerCaller } from '@/src/trpc/server'
 
+type PageItem = {
+  id: string
+  path: string
+  title: string
+  description?: string | null
+  updatedAt: string | Date
+  author?: { name?: string | null } | null
+}
+
 // ─── Shadcn-style Card primitives (inline for zero extra dep) ─────────────────
 
 function Card({ children, className = '' }: { children: React.ReactNode; className?: string }) {
@@ -46,7 +55,7 @@ export default async function HomePage() {
     trpc.users.list({ page: 1, perPage: 1 }),
   ])
 
-  const recentPages = pagesResult.status === 'fulfilled' ? pagesResult.value.pages : []
+  const recentPages: PageItem[] = pagesResult.status === 'fulfilled' ? pagesResult.value.items : []
   const totalPages = pagesResult.status === 'fulfilled' ? pagesResult.value.total : 0
   const totalUsers = usersResult.status === 'fulfilled' ? usersResult.value.total : 0
 
@@ -57,7 +66,7 @@ export default async function HomePage() {
       value:
         pagesResult.status === 'fulfilled'
           ? String(
-              pagesResult.value.pages.filter((p) => {
+              pagesResult.value.items.filter((p: PageItem) => {
                 const updated = new Date(p.updatedAt)
                 const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
                 return updated > weekAgo

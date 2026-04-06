@@ -1,6 +1,6 @@
 import { prisma } from "@court-wiki/db";
 import type { SearchOptions, SearchResult } from "@court-wiki/core";
-import type { PageIndexInput, SearchProvider } from "./index.js";
+import type { PageIndexInput, SearchProvider } from './index';
 
 export class PostgresSearchProvider implements SearchProvider {
   async index(page: PageIndexInput): Promise<void> {

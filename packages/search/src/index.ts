@@ -55,14 +55,14 @@ export async function createSearchProvider(
 ): Promise<SearchProvider> {
   switch (config.provider) {
     case "typesense": {
-      const { TypesenseSearchProvider } = await import("./typesense.js");
+      const { TypesenseSearchProvider } = await import('./typesense');
       if (!config.typesense) {
         throw new Error("Typesense search config missing");
       }
       return new TypesenseSearchProvider(config.typesense);
     }
     case "postgres": {
-      const { PostgresSearchProvider } = await import("./postgres.js");
+      const { PostgresSearchProvider } = await import('./postgres');
       return new PostgresSearchProvider();
     }
     default:

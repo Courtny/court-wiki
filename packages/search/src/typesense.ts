@@ -1,6 +1,6 @@
-import Typesense from "typesense";
+import * as Typesense from "typesense";
 import type { SearchOptions, SearchResult } from "@court-wiki/core";
-import type { PageIndexInput, SearchProvider } from "./index.js";
+import type { PageIndexInput, SearchProvider } from './index';
 import { prisma } from "@court-wiki/db";
 
 const COLLECTION_NAME = "pages";
@@ -100,7 +100,7 @@ export class TypesenseSearchProvider implements SearchProvider {
         query_by: "title,description,content",
         query_by_weights: "10,5,1",
         highlight_fields: "title,description,content",
-        highlight_num_tokens: 30,
+        highlight_affix_num_tokens: 30,
         per_page: opts.limit ?? 20,
         page: opts.offset ? Math.floor(opts.offset / (opts.limit ?? 20)) + 1 : 1,
         ...(filterBy && { filter_by: filterBy }),

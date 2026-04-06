@@ -169,7 +169,8 @@ export const usersRouter = router({
       if (!user) throw new TRPCError({ code: "NOT_FOUND" });
 
       // Never return password hash
-      const { passwordHash: _ph, ...safeUser } = user;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { passwordHash: _passwordHash, ...safeUser } = user;
       return safeUser;
     }),
 

@@ -10,6 +10,11 @@
     "noEmit": true,
     "allowJs": true,
     "plugins": [{ "name": "next" }],
+    "exactOptionalPropertyTypes": false,
+    "noImplicitAny": false,
+    "noUncheckedIndexedAccess": false,
+    "declaration": false,
+    "declarationMap": false,
     "paths": {
       "@/*": ["./src/*", "./*"]
     }

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { ThemeProvider } from "next-themes";
+import Link from "next/link";
 import "./globals.css";
 import { TRPCProvider } from "@/src/trpc/client";
 import { SidebarNav } from "@/src/components/sidebar-nav";
@@ -38,14 +39,14 @@ export default function RootLayout({
               {/* Sidebar */}
               <aside className="hidden w-64 flex-shrink-0 border-r border-border lg:flex lg:flex-col">
                 <div className="flex h-16 items-center border-b border-border px-6">
-                  <a href="/" className="flex items-center gap-2">
+                  <Link href="/" className="flex items-center gap-2">
                     <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary">
                       <span className="text-sm font-bold text-primary-foreground">
                         CW
                       </span>
                     </div>
                     <span className="text-lg font-semibold">Court Wiki</span>
-                  </a>
+                  </Link>
                 </div>
                 <div className="flex-1 overflow-y-auto p-4">
                   <SidebarNav />
