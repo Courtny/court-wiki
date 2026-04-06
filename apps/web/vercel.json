@@ -1,5 +1,8 @@
 {
   "installCommand": "cd ../.. && pnpm install --frozen-lockfile",
   "buildCommand": "pnpm build",
-  "framework": "nextjs"
+  "framework": "nextjs",
+  "env": {
+    "SKIP_ENV_VALIDATION": "true"
+  }
 }
