@@ -101,6 +101,20 @@ function NavLink({
 }
 
 export function SidebarNav() {
+  // #region agent log
+  fetch('http://127.0.0.1:7294/ingest/c29688ab-6971-42ae-8a4f-934c905524cb', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '29ec90' },
+    body: JSON.stringify({
+      sessionId: '29ec90', runId: 'run1', hypothesisId: 'H1-sidebar',
+      location: 'sidebar-nav.tsx:SidebarNav',
+      message: 'SidebarNav rendered — links in DOM will be prefetched',
+      data: { navCount: navItems.length, adminCount: adminNavItems.length, totalLinks: navItems.length + adminNavItems.length },
+      timestamp: Date.now(),
+    }),
+  }).catch(() => {})
+  // #endregion
+
   return (
     <nav className="space-y-1">
       {/* Main navigation */}

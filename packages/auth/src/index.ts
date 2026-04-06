@@ -6,6 +6,32 @@ import { getActiveProviders } from './providers';
 export const { handlers, auth, signIn, signOut } = NextAuth({
   trustHost: true,
   secret: process.env["AUTH_SECRET"] ?? process.env["NEXTAUTH_SECRET"],
+  // #region agent log
+  logger: {
+    error(error) {
+      fetch('http://127.0.0.1:7294/ingest/c29688ab-6971-42ae-8a4f-934c905524cb', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '29ec90' },
+        body: JSON.stringify({
+          sessionId: '29ec90', runId: 'run1', hypothesisId: 'H1-H3',
+          location: 'auth/index.ts:logger.error',
+          message: 'NextAuth server error',
+          data: {
+            errorType: error?.type ?? String(error),
+            errorMessage: error instanceof Error ? error.message : String(error),
+            hasSecret: !!(process.env["AUTH_SECRET"] ?? process.env["NEXTAUTH_SECRET"]),
+            hasGithubId: !!(process.env["GITHUB_CLIENT_ID"] ?? process.env["AUTH_GITHUB_ID"]),
+            hasGithubSecret: !!(process.env["GITHUB_CLIENT_SECRET"] ?? process.env["AUTH_GITHUB_SECRET"]),
+            hasDbUrl: !!process.env["DATABASE_URL"],
+            authUrl: process.env["AUTH_URL"] ?? process.env["NEXTAUTH_URL"] ?? 'unset',
+          },
+          timestamp: Date.now(),
+        }),
+      }).catch(() => {})
+      console.error('[auth][error]', error)
+    },
+  },
+  // #endregion
   adapter: PrismaAdapter(prisma),
   providers: getActiveProviders(),
   session: {
@@ -25,9 +51,28 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         publicPaths.includes(nextUrl.pathname) ||
         publicPrefixes.some((p) => nextUrl.pathname.startsWith(p))
 
-      if (isAdminRoute && !isLoggedIn) return false
-      if (!isPublic && !isLoggedIn) return false
-      return true
+      const isRsc = nextUrl.searchParams.has('_rsc')
+      const decision = (() => {
+        if (isAdminRoute && !isLoggedIn) return false
+        if (!isPublic && !isLoggedIn) return false
+        return true
+      })()
+
+      // #region agent log
+      fetch('http://127.0.0.1:7294/ingest/c29688ab-6971-42ae-8a4f-934c905524cb', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '29ec90' },
+        body: JSON.stringify({
+          sessionId: '29ec90', runId: 'run1', hypothesisId: 'H1',
+          location: 'auth/index.ts:authorized',
+          message: 'middleware authorized check',
+          data: { path: nextUrl.pathname, isLoggedIn, isPublic, isRsc, decision },
+          timestamp: Date.now(),
+        }),
+      }).catch(() => {})
+      // #endregion
+
+      return decision
     },
     async jwt({ token, user }) {
       if (user) {
