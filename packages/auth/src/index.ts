@@ -42,6 +42,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     error: "/login",
   },
   callbacks: {
+    async signIn({ user, account, profile }) {
+      // #region agent log
+      console.log('[auth][signIn-callback]', JSON.stringify({
+        provider: account?.provider,
+        hasUser: !!user,
+        userId: user?.id ?? null,
+        email: user?.email ?? null,
+        accountType: account?.type ?? null,
+      }))
+      // #endregion
+      return true
+    },
     authorized({ auth: session, request: { nextUrl } }) {
       const isLoggedIn = !!session?.user
       const isAdminRoute = nextUrl.pathname.startsWith('/admin')
