@@ -1,8 +1,5 @@
 {
   "framework": "nextjs",
   "installCommand": "npm install -g pnpm@9 && cd ../.. && pnpm install",
-  "buildCommand": "pnpm build",
-  "env": {
-    "SKIP_ENV_VALIDATION": "true"
-  }
+  "buildCommand": "pnpm build"
 }
