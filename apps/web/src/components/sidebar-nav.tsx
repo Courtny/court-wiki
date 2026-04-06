@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
 import {
   BookOpen,
   FileText,
@@ -45,9 +46,11 @@ const adminNavItems: NavItem[] = [
 function NavLink({
   item,
   depth = 0,
+  isLoggedIn = false,
 }: {
   item: NavItem;
   depth?: number;
+  isLoggedIn?: boolean;
 }) {
   const pathname = usePathname();
   const isActive =
@@ -57,10 +60,15 @@ function NavLink({
 
   const Icon = item.icon;
 
+  // Don't prefetch auth-required links for unauthenticated users — avoids
+  // the middleware redirect flood that generates dozens of 307s per page load.
+  const prefetch = isLoggedIn ? undefined : false;
+
   return (
     <div>
       <Link
         href={item.href}
+        prefetch={prefetch}
         className={[
           "sidebar-link",
           isActive ? "active" : "",
@@ -83,6 +91,7 @@ function NavLink({
             <Link
               key={child.href}
               href={child.href}
+              prefetch={prefetch}
               className={[
                 "sidebar-link pl-8 text-xs",
                 pathname === child.href ? "active" : "",
@@ -101,37 +110,31 @@ function NavLink({
 }
 
 export function SidebarNav() {
-  // #region agent log
-  fetch('http://127.0.0.1:7294/ingest/c29688ab-6971-42ae-8a4f-934c905524cb', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '29ec90' },
-    body: JSON.stringify({
-      sessionId: '29ec90', runId: 'run1', hypothesisId: 'H1-sidebar',
-      location: 'sidebar-nav.tsx:SidebarNav',
-      message: 'SidebarNav rendered — links in DOM will be prefetched',
-      data: { navCount: navItems.length, adminCount: adminNavItems.length, totalLinks: navItems.length + adminNavItems.length },
-      timestamp: Date.now(),
-    }),
-  }).catch(() => {})
-  // #endregion
+  const { data: session, status } = useSession();
+  const isLoggedIn = status === "authenticated";
+  const isAdmin =
+    isLoggedIn &&
+    !!(session?.user as (typeof session.user & { isAdmin?: boolean }) | undefined)?.isAdmin;
 
   return (
     <nav className="space-y-1">
       {/* Main navigation */}
       {navItems.map((item) => (
-        <NavLink key={item.href} item={item} />
+        <NavLink key={item.href} item={item} isLoggedIn={isLoggedIn} />
       ))}
 
-      {/* Divider */}
-      <div className="my-3 border-t border-border" />
-
-      {/* Admin section */}
-      <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-        Administration
-      </p>
-      {adminNavItems.map((item) => (
-        <NavLink key={item.href} item={item} />
-      ))}
+      {/* Admin section — only rendered for admins */}
+      {isAdmin && (
+        <>
+          <div className="my-3 border-t border-border" />
+          <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Administration
+          </p>
+          {adminNavItems.map((item) => (
+            <NavLink key={item.href} item={item} isLoggedIn={isLoggedIn} />
+          ))}
+        </>
+      )}
     </nav>
   );
 }
