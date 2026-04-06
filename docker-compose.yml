@@ -63,14 +63,9 @@ services:
     restart: unless-stopped
     ports:
       - "3000:3000"
+    env_file:
+      - .env
     environment:
-      DATABASE_URL: postgresql://courtwiki:courtwiki_secret@postgres:5432/courtwiki
-      REDIS_URL: redis://:redis_secret@redis:6379
-      TYPESENSE_HOST: typesense
-      TYPESENSE_PORT: "8108"
-      TYPESENSE_API_KEY: typesense_dev_key
-      NEXTAUTH_URL: http://localhost:3000
-      NEXTAUTH_SECRET: your-nextauth-secret-change-in-production
       NODE_ENV: production
     depends_on:
       postgres:
@@ -92,12 +87,9 @@ services:
       dockerfile: apps/worker/Dockerfile
     container_name: court-wiki-worker
     restart: unless-stopped
+    env_file:
+      - .env
     environment:
-      DATABASE_URL: postgresql://courtwiki:courtwiki_secret@postgres:5432/courtwiki
-      REDIS_URL: redis://:redis_secret@redis:6379
-      TYPESENSE_HOST: typesense
-      TYPESENSE_PORT: "8108"
-      TYPESENSE_API_KEY: typesense_dev_key
       NODE_ENV: production
     depends_on:
       postgres:
