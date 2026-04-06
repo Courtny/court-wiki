@@ -4,6 +4,7 @@ import { prisma } from "@court-wiki/db";
 import { getActiveProviders } from './providers';
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  trustHost: true,
   adapter: PrismaAdapter(prisma),
   providers: getActiveProviders(),
   session: {
@@ -18,7 +19,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       const isLoggedIn = !!session?.user
       const isAdminRoute = nextUrl.pathname.startsWith('/admin')
       const publicPaths = ['/', '/login', '/register']
-      const publicPrefixes = ['/api/trpc', '/api/health', '/_next', '/favicon']
+      const publicPrefixes = ['/api/trpc', '/api/health', '/api/auth', '/_next', '/favicon']
       const isPublic =
         publicPaths.includes(nextUrl.pathname) ||
         publicPrefixes.some((p) => nextUrl.pathname.startsWith(p))
