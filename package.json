@@ -17,7 +17,8 @@
     "db:generate": "turbo run db:generate",
     "db:push": "turbo run db:push",
     "db:migrate": "turbo run db:migrate",
-    "db:studio": "cd packages/db && pnpm prisma studio"
+    "db:studio": "cd packages/db && pnpm prisma studio",
+    "postinstall": "pnpm --filter @court-wiki/db exec prisma generate"
   },
   "devDependencies": {
     "@types/node": "^20.11.5",
