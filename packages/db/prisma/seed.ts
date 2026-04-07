@@ -87,7 +87,7 @@ async function main() {
 
   // Getting started page
   await prisma.page.upsert({
-    where: { path_locale: { path: 'getting-started', locale: 'en' } },
+    where: { path: 'getting-started' },
     update: {},
     create: {
       path: 'getting-started',
