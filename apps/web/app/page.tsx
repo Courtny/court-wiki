@@ -145,7 +145,7 @@ export default async function HomePage() {
                 <CardHeader>
                   <CardTitle>
                     <Link
-                      href={`/${page.path}`}
+                      href={`/pages/${page.path}`}
                       className="transition-colors group-hover:text-primary"
                     >
                       {page.title}
@@ -187,10 +187,10 @@ export default async function HomePage() {
         <CardContent>
           <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
             {[
-              { label: 'Getting Started', href: '/getting-started' },
-              { label: 'Documentation', href: '/docs' },
-              { label: 'Operations', href: '/ops' },
-              { label: 'Admin Panel', href: '/admin' },
+              { label: 'Getting Started', href: '/pages/getting-started' },
+              { label: 'All Pages', href: '/pages' },
+              { label: 'Search', href: '/search' },
+              { label: 'Admin Panel', href: '/admin/settings' },
             ].map((link) => (
               <Link
                 key={link.href}

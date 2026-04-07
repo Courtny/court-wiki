@@ -27,12 +27,12 @@ const navItems: NavItem[] = [
   { label: "Search", href: "/search", icon: Search },
   {
     label: "Documentation",
-    href: "/docs",
+    href: "/pages/getting-started",
     icon: BookOpen,
     children: [
-      { label: "Getting Started", href: "/getting-started" },
-      { label: "Architecture", href: "/docs/architecture" },
-      { label: "API Reference", href: "/docs/api" },
+      { label: "Getting Started", href: "/pages/getting-started" },
+      { label: "Architecture", href: "/pages/docs/architecture" },
+      { label: "API Reference", href: "/pages/docs/api" },
     ],
   },
   { label: "Assets", href: "/assets", icon: Upload },
