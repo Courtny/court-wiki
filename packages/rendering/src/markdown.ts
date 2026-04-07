@@ -1,4 +1,4 @@
-import { unified } from "remark";
+import { unified } from "unified";
 import remarkParse from "remark-parse";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
